@@ -1,9 +1,9 @@
-"use strict";
+'use strict'
 
-const path         = require('path')
-const sqlite3      = require('sqlite3').verbose()
-const reverse      = require('./reverse')
-const findLocation = require('./location').find
+const path = require('path')
+const sqlite3 = require('sqlite3').verbose()
+const reverse = require('./reverse')
+const find = require('./location')
 
 function Geocoder(options) {
   var geocoder = function(options) {
@@ -20,17 +20,11 @@ function Geocoder(options) {
     return reverse(this, latitude, longitude, callback)
   }
 
-  geocoder.prototype.location = function() {
-    const _this = this
-
-    return {
-      find: function(locationId) {
-        return findLocation(_this, locationId)
-      }
-    }
+  geocoder.prototype.find = function(locationName, callback) {
+    return find(this, locationName, callback)
   }
 
   return new geocoder(options)
 }
 
-module.exports = Geocoder;
+module.exports = Geocoder

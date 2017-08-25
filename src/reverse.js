@@ -1,6 +1,4 @@
-"use strict";
-
-const formatLocation = require('./location').format
+'use strict'
 
 // This finds the closest feature based upon Pythagoras's theorem. It is an
 // approximation, and won't provide results as accurate as the haversine
@@ -29,21 +27,21 @@ function findFeature(geocoder, latitude, longitude, callback) {
     const scale = Math.pow(Math.cos(latitude * Math.PI / 180), 2)
 
     geocoder.db.all(query, {
-      $lat:   latitude,
-      $lon:   longitude,
+      $lat: latitude,
+      $lon: longitude,
       $scale: scale
     }, function(err, rows) {
       if (err) {
-        if (typeof(callback) == 'function') {
+        if (typeof (callback) === 'function') {
           callback(err, undefined)
-        } else if (typeof(reject) == 'function') {
+        } else if (typeof (reject) === 'function') {
           reject(err)
         }
       } else {
         const result = formatResult(rows)
-        if (typeof(callback) == 'function') {
+        if (typeof (callback) === 'function') {
           callback(undefined, result)
-        } else if (typeof(resolve) == 'function') {
+        } else if (typeof (resolve) === 'function') {
           resolve(result)
         }
       }
@@ -56,8 +54,35 @@ function formatResult(rows) {
 
   if (row === undefined) {
     return {}
-  } else {
-    return formatLocation(row)
+  }
+
+  // Construct the formatted name consisting of the name, admin1 name and
+  // country name. Some features don't have an admin1, and others may have the
+  // same name as the feature, so this handles that.
+  let nameParts = []
+  nameParts.push(row.name)
+  if (row.admin1_name && row.admin1_name !== row.name) {
+    nameParts.push(row.admin1_name)
+  }
+  nameParts.push(row.country_name)
+  const formattedName = nameParts.join(', ')
+
+  return {
+    id: row.id,
+    name: row.name,
+    formatted: formattedName,
+    country: {
+      id: row.country_id,
+      name: row.country_name
+    },
+    admin1: {
+      id: row.admin1_id,
+      name: row.admin1_name
+    },
+    coordinates: {
+      latitude: row.latitude,
+      longitude: row.longitude
+    }
   }
 }
 
@@ -65,4 +90,4 @@ function Reverse(geocoder, latitude, longitude, callback) {
   return findFeature(geocoder, latitude, longitude, callback)
 }
 
-module.exports = Reverse;
+module.exports = Reverse

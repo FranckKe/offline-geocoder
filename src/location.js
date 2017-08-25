@@ -1,23 +1,23 @@
-"use strict";
+'use strict'
 
-function find(geocoder, locationId) {
+function find(geocoder, locationName, callback) {
   return new Promise(function(resolve, reject) {
-    const query = `SELECT * FROM everything WHERE id = $id LIMIT 1`
+    const query = `SELECT * FROM everything WHERE name = $locationName LIMIT 1 COLLATE NOCASE`
 
     geocoder.db.all(query, {
-      $id: locationId
+      $locationName: locationName
     }, function(err, rows) {
       if (err) {
-        if (typeof(callback) == 'function') {
+        if (typeof (callback) === 'function') {
           callback(err, undefined)
-        } else if (typeof(reject) == 'function') {
+        } else if (typeof (reject) === 'function') {
           reject(err)
         }
       } else {
         const result = formatResult(rows)
-        if (typeof(callback) == 'function') {
+        if (typeof (callback) === 'function') {
           callback(undefined, result)
-        } else if (typeof(resolve) == 'function') {
+        } else if (typeof (resolve) === 'function') {
           resolve(result)
         }
       }
@@ -41,32 +41,33 @@ function format(result) {
   // same name as the feature, so this handles that.
   let nameParts = []
   nameParts.push(result.name)
-  if (result.admin1_name && result.admin1_name != result.name) {
+  if (result.admin1_name && result.admin1_name !== result.name) {
     nameParts.push(result.admin1_name)
   }
   nameParts.push(result.country_name)
   const formattedName = nameParts.join(', ')
 
   return {
-    id:        result.id,
-    name:      result.name,
+    id: result.id,
+    name: result.name,
     formatted: formattedName,
     country: {
-      id:   result.country_id,
+      id: result.country_id,
       name: result.country_name
     },
     admin1: {
-      id:   result.admin1_id,
-      name: result.admin1_name,
+      id: result.admin1_id,
+      name: result.admin1_name
     },
     coordinates: {
-      latitude:  result.latitude,
+      latitude: result.latitude,
       longitude: result.longitude
     }
   }
 }
 
-module.exports = {
-  find:   find,
-  format: format
+function Find(geocoder, locationName, callback) {
+  return find(geocoder, locationName, callback)
 }
+
+module.exports = Find
